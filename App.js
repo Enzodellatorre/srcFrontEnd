@@ -23,19 +23,24 @@ export default function App() {
     alert('periodo: '+periodo);
     alert('dia: '+dia);
   }
+  
+  
+    function postNiveis(){
   fetch('localhost:3000/nivel',
   {
     method:'POST',
     headers:{
       Accept:'application/json',
-      'Content-type':'application-json'
+      'Content-Type':'application-json'
     },
     body:JSON.stringify({
-      firstParam:'valorNivel',
-      secondParam:'idPeriodo',
-      thirdParam:'idDia'
+      valorNivel,
+      idPeriodo,
+      idDia
     })
   });
+}
+ 
   const getNiveisFromApiAsync=async ()=>{
     try{
       let response=await fetch('localhost:3000/niveis');
@@ -45,6 +50,7 @@ export default function App() {
       console.error(error);
     }
   }
+  
   /*
   function calcularMedia({{tableData}}){
     var media=0;
