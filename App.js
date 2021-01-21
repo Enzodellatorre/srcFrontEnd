@@ -3,109 +3,116 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View,TextInput, TouchableOpacity } from 'react-native';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import SlidingPanel from 'react-native-sliding-panels';
+
 export default function App() {
   const [valor,setValor]=useState('');
   const[periodo,setPeriodo]=useState('');
   const[dia,setDia]=useState('');
+  const data1=Date();
   const tb={
-    tableHead:['Domingo'],
-    tableTitle:['Antes do café','depois do café','antes do almoco','depois do almoco','antes do jantar', 'depois do jantar'],
-    tableData:[[90],
-               [85],
-               [93],
-               [88],
-               [92],
-               [89]
-  ]
+    tableHead:[data1],
+    tableTitle:['pré-café','pós-café','pré-almoco','pós-almoco','pré-jantar', 'pós-jantar'],
+    tableData:[[getNiveisFromApi]]
   }
-  function handleSubmit(){
-    alert('valor: '+valor);
-    alert('periodo: '+periodo);
-    alert('dia: '+dia);
-  }
-  
-  
-    function postNiveis(){
-  fetch('localhost:3000/nivel',
-  {
-    method:'POST',
-    headers:{
-      Accept:'application/json',
-      'Content-Type':'application-json'
-    },
-    body:JSON.stringify({
-      valorNivel,
-      idPeriodo,
-      idDia
-    })
-  });
-}
- 
-  const getNiveisFromApiAsync=async ()=>{
-    try{
-      let response=await fetch('localhost:3000/niveis');
-    let json=await response.json();
-    return json.niveis;
-    }catch(error){
-      console.error(error);
+ //avalia valor recebido como parametro e retorna mensagem ao usuario
+  function avaliaValor(valor){
+     if(valor<54){
+      alert("alerta de hipoglicemia nivel 2-requer açao imediata");
+    }
+    else if(valor>54 && valor<70){
+      alert("alerta de hipoglicemia nivel 1-requer monitoramento");
+    }
+    else if(valor>70 && valor<180){
+      alert("nivel de glicemia equilibrado");
+    }
+    else if(valor>180){
+      alert("alerta de hiperglicemia nivel 1-alerta elevado");
+    }
+    else if(valor>250){
+      alert("alerta de hiperglicemia nivel 2-requer açao imediata")
     }
   }
-  
-  /*
-  function calcularMedia({{tableData}}){
+  //função de postar os niveis no banco
+  async function postNiveis(){
+    const req = await fetch(`http://localhost:3000/niveis`, {
+      method: 'POST',
+      headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        valorNivel: valor,
+        idPeriodo: periodo,
+        idDia: dia
+      })
+    });
+    
+    if((valor=='') || (periodo=='') || (dia=='')){
+      alert('falta campos a serem preenchidos')
+    }
+    const json = await req.json();
+    avaliaValor(valor);
+}
+ //funçao de puxar dados do banco quando carregar o app
+  function getNiveisFromApi (){
+    fetch('http://yourPCip:3000/niveis')
+    .then(response => response.json())
+    .then(niveis => console.warn(niveis))
+  }
+getNiveisFromApi();
+  //funçao de calcular a media glicemica do usuario
+  function calcularMedia(){
     var media=0;
     var soma=0;
-    forEach(numero){
-      soma+= numero;
-      media=(soma)/6;
-      return media;
-    };
-  */
+    const x = 0;
+
+    for (var i = 0, len = tb.tableData.length; i < len; i++) {
+      soma += Number(tb.tableData[i]);
+    }
+    media = soma/6;
+    alert('Média: '+media);
+    var valorMedia=media;
+    avaliaValor(valorMedia);
+  }
+ 
   return (
     <View style={styles.container}>
+     
       <Table borderStyle={{borderWidth:1}}>
-                <Row data={tb.tableHead} flexArr={[1,2,1,1]}style={styles.head} textStyle={styles.text}/>
-                <TextInput 
+                <Row data={tb.tableHead} flexArr={[1,2,1,1]}style={styles.head} textStyle={styles.text}/> 
+                <TableWrapper style={styles.wrapper}>
+                    <Col data={tb.tableTitle} style={styles.title} heightArr={[28,28]}textStyle={styles.text}/>
+                    <Rows data={tb.tableData} flexArr={[2,1,1]} style={styles.row} textStyle={styles.text}/>           
+                </TableWrapper>
+      </Table>
+     
+     <TextInput
+                              placeholder="valor glicêmico" 
+                              keyboardType="numeric"
+                              value={valor}
+                              onChangeText={(valor)=>setValor(valor)} 
+                              style={styles.input}/>  
+      
+      <TextInput 
+                          placeholder="periodo do dia" 
+                          keyboardType="numeric"
+                          value={periodo}
+                          onChangeText={(periodo)=>setPeriodo(periodo)}  
+                          style={styles.input}/>
+
+      <TextInput 
                           placeholder="dia" 
                           keyboardType="numeric"
                           value={dia}
                           onChangeText={(dia)=>setDia(dia)}  
                           style={styles.input}/>
-                
-                <TableWrapper style={styles.wrapper}>
-                    <Col data={tb.tableTitle} style={styles.title} heightArr={[28,28]}textStyle={styles.text}/>
-                    <TextInput 
-                          placeholder="periodo" 
-                          keyboardType="numeric"
-                          value={periodo}
-                          onChangeText={(periodo)=>setPeriodo(periodo)}  
-                          style={styles.input}/>
-                    
-                    <Rows data={tb.tableData} flexArr={[2,1,1]} style={styles.row} textStyle={styles.text}/>
-                    <TextInput
-                              placeholder="valor" 
-                              keyboardType="numeric"
-                              value={valor}
-                              onChangeText={(valor)=>setValor(valor)} 
-                              style={styles.input}/>
-                              
-                </TableWrapper>
-            </Table>
-      <SlidingPanel
-      headerLayoutHeight={100}
-      headerLayout={()=>
-      <View style={styles.headerLayoutStyle}>
-          <Text style={styles.text}>{tb.tableHead}</Text>
-      </View>
-      }
-      />
-       
-       <TouchableOpacity onpress={handleSubmit} style={styles.button}>
+            
+       <TouchableOpacity onPress={postNiveis} style={styles.button}>
          <Text style={styles.buttonText}>Inserir valores</Text>
          </TouchableOpacity>
        
        <TouchableOpacity 
-       onpress={()=>{}}
+       onPress={calcularMedia}
        style={styles.button}
        >
          <Text style={styles.buttonText}>Calcular média</Text>
@@ -124,11 +131,7 @@ const styles = StyleSheet.create({
     height:40,
     backgroundColor:'#f1f8ff'
 },
-input:{
-  alignSelf:'right',
-  alignItems:'right',
-  padding:10
-},
+
 wrapper:{
     flexDirection:'row'
 },
@@ -156,18 +159,13 @@ text:{
      color:"#FFF",
      fontWeight:'bold'
    },
-   headerLayoutStyle: {
-    width:100, 
-    height: 100, 
-    backgroundColor: 'orange', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-  },
-  slidingPanelLayoutStyle: {
-    width:100, 
-    height:100, 
-    backgroundColor: '#7E52A0', 
-    justifyContent: 'center', 
-    alignItems: 'center',
+   
+  input:{
+    backgroundColor:'#121212',
+    borderRadius:10,
+    margin:15,
+    padding:10,
+    color:'#FFF',
+    fontSize:23
   }
 });
