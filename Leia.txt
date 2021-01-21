@@ -1,0 +1,9 @@
+Obrigado por ler!
+os periodos e dias desse projeto de tcc foram cadastrados previamente no banco
+Os dias e períodos nao mudam
+a tabela de períodos contém 6 registros, sendo o 
+registro 1=antes do café da manhã até o 
+6=após o jantar
+a tabela de dias contém 7 registros,sendo o registro 
+1=domingo até o 
+7=sabado
